@@ -1,8 +1,10 @@
-import { useState } from 'react';
-import classnames from 'classnames';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import React, { useState } from 'react';
+import { ThemeProvider } from 'styled-components';
+import { lightTheme, darkTheme } from "../../design/designTokens";
+import { SidebarContainer, LogoContainer, LogoImg, LogoText } from './Sidebar.styles';
+import { NavItem } from './NavItem';
+import { ThemeToggle } from '../ThemeToggle';
 import logo from '../../assets/logo.png';
-import PropTypes from 'prop-types';
 
 const routes = [
     { title: 'Home', icon: 'fas-solid fa-house', path: '/' },
@@ -18,64 +20,59 @@ const bottomRoutes = [
     { title: 'Support', icon: 'phone-volume', path: '/support' },
 ];
 
-const Sidebar = (props) => {
-    const { color } = props;
+const Sidebar = () => {
     const [isOpened, setIsOpened] = useState(false);
-    const containerClassnames = classnames('sidebar', { opened: isOpened });
+    const [activeRoute, setActiveRoute] = useState('/');
+    const [theme, setTheme] = useState(lightTheme);
 
-    const goToRoute = (path) => {
-        console.log(`going to "${path}"`);
+    const toggleTheme = () => {
+        setTheme(prevTheme => (prevTheme === lightTheme ? darkTheme : lightTheme));
     };
 
-    const toggleSidebar = () => {
-        setIsOpened(v => !v);
+    const goToRoute = (path) => {
+        setActiveRoute(path);
+        console.log(`Navigating to "${path}"`);
     };
 
     return (
-        <div className={ containerClassnames }>
-            <div>
-                <img src={ logo } alt="TensorFlow logo"/>
-                <span>TensorFlow</span>
-                <div onClick={ toggleSidebar }>
-                    <FontAwesomeIcon icon={ isOpened ? 'angle-left' : 'angle-right' }/>
+        <ThemeProvider theme={theme}>
+            <SidebarContainer
+                $isOpened={isOpened}
+                onMouseEnter={() => setIsOpened(true)}
+                onMouseLeave={() => setIsOpened(false)}
+            >
+                <LogoContainer>
+                    <LogoImg src={logo} alt="Logo" />
+                    <LogoText $isOpened={isOpened}>TensorFlow</LogoText>
+                </LogoContainer>
+                <div>
+                    {routes.map(route => (
+                        <NavItem
+                            key={route.path}
+                            icon={route.icon}
+                            title={route.title}
+                            $isOpened={isOpened}
+                            $isActive={activeRoute === route.path}
+                            onClick={() => goToRoute(route.path)}
+                        />
+                    ))}
                 </div>
-            </div>
-            <div>
-                {
-                    routes.map(route => (
-                        <div
-                            key={ route.title }
-                            onClick={() => {
-                                goToRoute(route.path);
-                            }}
-                        >
-                            <FontAwesomeIcon icon={ route.icon }/>
-                            <span>{ route.title }</span>
-                        </div>
-                    ))
-                }
-            </div>
-            <div>
-                {
-                    bottomRoutes.map(route => (
-                        <div
-                            key={ route.title }
-                            onClick={() => {
-                                goToRoute(route.path);
-                            }}
-                        >
-                            <FontAwesomeIcon icon={ route.icon }/>
-                            <span>{ route.title }</span>
-                        </div>
-                    ))
-                }
-            </div>
-        </div>
+                <div style={{ marginTop: 'auto' }}>
+                    {bottomRoutes.map(route => (
+                        <NavItem
+                            key={route.path}
+                            icon={route.icon}
+                            title={route.title}
+                            $isOpened={isOpened}
+                            $isActive={activeRoute === route.path}
+                            onClick={() => goToRoute(route.path)}
+                        />
+                    ))}
+                </div>
+            </SidebarContainer>
+            <ThemeToggle onClick={toggleTheme} />
+        </ThemeProvider>
     );
-};
-
-Sidebar.propTypes = {
-    color: PropTypes.string,
 };
 
 export default Sidebar;
